@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emissão de NFS-e</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 60%;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Emissão de Nota Fiscal de Serviço (NFS-e)</h1>
+        
+        <label for="totalValue">Valor da Venda (R$):</label>
+        <input type="number" id="totalValue" placeholder="Valor total">
+
+        <label for="products">Itens Vendidos:</label>
+        <textarea id="products" rows="4" placeholder="Produtos"></textarea>
+
+        <label for="irpf">Porcentagem do IRPF:</label>
+        <input type="number" id="irpf" placeholder="Porcentagem de IRPF">
+
+        <label for="pis">Porcentagem do PIS:</label>
+        <input type="number" id="pis" placeholder="Porcentagem de PIS">
+
+        <label for="cofins">Porcentagem do COFINS:</label>
+        <input type="number" id="cofins" placeholder="Porcentagem de COFINS">
+
+        <label for="inss">Porcentagem do INSS:</label>
+        <input type="number" id="inss" placeholder="Porcentagem de INSS">
+
+        <label for="issqn">Porcentagem do ISSQN:</label>
+        <input type="number" id="issqn" placeholder="Porcentagem de ISSQN">
+
+        <button onclick="generateNF()">Gerar Nota Fiscal</button>
+
+        <div class="result" id="notaFiscal"></div>
+        <div class="error" id="errorMessage"></div>
+    </div>
+
+    <script>
+        function calcularImposto(value, percentage) {
+            return (value * percentage) / 100;
+        }
+
+        function inputValidation() {
+            const totalValue = document.getElementById('totalValue').value;
+            const products = document.getElementById('products').value;
+            const irpfPercentage = document.getElementById('irpf').value;
+            const pisPercentage = document.getElementById('pis').value;
+            const cofinsPercentage = document.getElementById('cofins').value;
+            const inssPercentage = document.getElementById('inss').value;
+            const issqnPercentage = document.getElementById('issqn').value;
+
+            let errorMessage = '';
+
+            if (!totalValue || !products || !irpfPercentage || !pisPercentage || !cofinsPercentage || !inssPercentage || !issqnPercentage) {
+                errorMessage += 'Todos os campos devem ser preenchidos.<br>';
+            }
+
+            const totalValueNum = parseFloat(totalValue);
+            const irpfNum = parseFloat(irpfPercentage);
+            const pisNum = parseFloat(pisPercentage);
+            const cofinsNum = parseFloat(cofinsPercentage);
+            const inssNum = parseFloat(inssPercentage);
+            const issqnNum = parseFloat(issqnPercentage);
+
+            if (isNaN(totalValueNum) || totalValueNum <= 0) {
+                errorMessage += 'O value da percentage deve ser um número positivo.<br>';
+            }
+            if (isNaN(irpfNum) || irpfNum < 0) {
+                errorMessage += 'A porcentagem de IRPF deve ser um número válido e não negativo.<br>';
+            }
+            if (isNaN(pisNum) || pisNum < 0) {
+                errorMessage += 'A porcentagem de PIS deve ser um número válido e não negativo.<br>';
+            }
+            if (isNaN(cofinsNum) || cofinsNum < 0) {
+                errorMessage += 'A porcentagem de COFINS deve ser um número válido e não negativo.<br>';
+            }
+            if (isNaN(inssNum) || inssNum < 0) {
+                errorMessage += 'A porcentagem de INSS deve ser um número válido e não negativo.<br>';
+            }
+            if (isNaN(issqnNum) || issqnNum < 0) {
+                errorMessage += 'A porcentagem de ISSQN deve ser um número válido e não negativo.<br>';
+            }
+
+            if (errorMessage) {
+                document.getElementById('errorMessage').innerHTML = errorMessage;
+                return false;
+            }
+            document.getElementById('errorMessage').innerHTML = '';
+            return true;
+        }
+
+        function generateNF() {
+            if (!inputValidation()) {
+                return;
+            }
+
+            const totalValue = parseFloat(document.getElementById('totalValue').value);
+            const products = document.getElementById('products').value;
+            const irpfPercentage = parseFloat(document.getElementById('irpf').value);
+            const pisPercentage = parseFloat(document.getElementById('pis').value);
+            const cofinsPercentage = parseFloat(document.getElementById('cofins').value);
+            const inssPercentage = parseFloat(document.getElementById('inss').value);
+            const issqnPercentage = parseFloat(document.getElementById('issqn').value);
+
+            const irpf = calcularImposto(totalValue, irpfPercentage);
+            const pis = calcularImposto(totalValue, pisPercentage);
+            const cofins = calcularImposto(totalValue, cofinsPercentage);
+            const inss = calcularImposto(totalValue, inssPercentage);
+            const issqn = calcularImposto(totalValue, issqnPercentage);
+            const totalTax = irpf + pis + cofins + inss + issqn;
+            const totalLiquid = totalValue - totalTax;
+
+            const notaFiscal = `
+                <h2>Nota Fiscal de Serviço (NFS-e)</h2>
+                <p><strong>Valor da Venda:</strong> R$ ${totalValue.toFixed(2)}</p>
+                <p><strong>Itens Vendidos:</strong> ${products}</p>
+                <h3>Valor de Impostos:</h3>
+                <p><strong>IRPF (${irpfPercentage}%):</strong> R$ ${irpf.toFixed(2)}</p>
+                <p><strong>PIS (${pisPercentage}%):</strong> R$ ${pis.toFixed(2)}</p>
+                <p><strong>COFINS (${cofinsPercentage}%):</strong> R$ ${cofins.toFixed(2)}</p>
+                <p><strong>INSS (${inssPercentage}%):</strong> R$ ${inss.toFixed(2)}</p>
+                <p><strong>ISSQN (${issqnPercentage}%):</strong> R$ ${issqn.toFixed(2)}</p>
+                <p><strong>Total:</strong> R$ ${totalTax.toFixed(2)}</p>
+                <p><strong>Total Líquido:</strong> R$ ${totalLiquid.toFixed(2)}</p>
+            `;
+
+            document.getElementById('notaFiscal').innerHTML = notaFiscal;
+        }
+    </script>
+
+</body>
+</html>
